@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const generators = {
+  // ─── DevOps & Infrastructure ───
   dockerfile: "make-dockerfile.mjs",
   "github-actions": "make-github-actions.mjs",
   "gitlab-ci": "make-gitlab-ci.mjs",
@@ -15,6 +16,22 @@ const generators = {
   jenkins: "make-jenkinsfile.mjs",
   nginx: "make-nginx.mjs",
   terraform: "make-terraform.mjs",
+  pm2: "make-pm2.mjs",
+  monitoring: "make-monitoring.mjs",
+
+  // ─── Code Quality & DX ───
+  eslint: "make-eslint-prettier.mjs",
+  husky: "make-husky.mjs",
+  typescript: "make-typescript.mjs",
+  testing: "make-testing.mjs",
+  vscode: "make-vscode.mjs",
+
+  // ─── Project Config ───
+  git: "make-git.mjs",
+  env: "make-env.mjs",
+  security: "make-security.mjs",
+  "api-docs": "make-api-docs.mjs",
+  makefile: "make-makefile.mjs",
 };
 
 const args = process.argv.slice(2);

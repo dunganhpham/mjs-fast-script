@@ -1,194 +1,254 @@
-# DevOps Config Generator
+# DevOps & Project Config Generator
 
-Bộ công cụ MJS tạo nhanh các file cấu hình DevOps/Infrastructure production-ready cho dự án Node.js.
+Bộ 20 generators MJS tạo nhanh toàn bộ file cấu hình production-ready cho dự án Node.js/TypeScript — từ ESLint, Husky, Docker cho đến K8S, Terraform, Monitoring.
 
-## Yêu cầu
+## Yeu cau
 
 - Node.js >= 18
 
-## Sử dụng
+## Su dung
 
 ```bash
-# Xem danh sách generators
+# Xem danh sach generators
 node index.mjs --list
 
-# Chạy tất cả
+# Chay tat ca (20 generators)
 node index.mjs --all
 
-# Chạy từng cái
-node index.mjs dockerfile github-actions k8s
+# Chay tung nhom
+node index.mjs eslint husky typescript testing vscode   # Code quality
+node index.mjs dockerfile nginx k8s helm terraform      # Infrastructure
+node index.mjs git env security api-docs makefile        # Project config
 
-# Kết hợp tùy ý
-node index.mjs dockerfile nginx terraform
+# Ket hop tuy y
+node index.mjs dockerfile eslint husky git env
 ```
 
-> Các file đã tồn tại sẽ **không bị ghi đè** (hiện cảnh báo ⚠️).
+> Cac file da ton tai se **khong bi ghi de** (hien canh bao).
 
-## Generators
+## Tong quan Generators (20)
+
+### DevOps & Infrastructure
 
 | Command | File | Output |
 |---|---|---|
-| `dockerfile` | `make-dockerfile.mjs` | `Dockerfile` (multi-stage), `.dockerignore`, `docker-compose.yml` (App + Postgres + Redis + Nginx), `docker-compose.dev.yml`, `docker-compose.test.yml` |
-| `github-actions` | `make-github-actions.mjs` | `.github/workflows/` (CI, Deploy, Release, CodeQL, Dependency Review, PR Labeler, Stale), `.github/dependabot.yml`, `.github/labeler.yml` |
-| `gitlab-ci` | `make-gitlab-ci.mjs` | `.gitlab-ci.yml` (validate → test → security → build → staging → production, SAST, Trivy, rollback) |
-| `k8s` | `make-k8s.mjs` | `k8s/` (20 manifests: namespace, RBAC, deployment, service, ingress, HPA, PDB, NetworkPolicy, PVC, CronJobs, ResourceQuota, LimitRange, Kustomize overlays) |
-| `helm` | `make-helm.mjs` | `helm/app/` (18 files: full Helm chart với templates, values base/staging/production, NOTES.txt, tests) |
-| `jenkins` | `make-jenkinsfile.mjs` | `Jenkinsfile` (K8s pod agent, parallel stages, SonarQube, Trivy, Slack notifications, manual approval) |
-| `nginx` | `make-nginx.mjs` | `nginx/` (nginx.conf, default.conf, Dockerfile, generate-ssl.sh — rate limiting, upstream LB, proxy cache, WebSocket, SSL) |
-| `terraform` | `make-terraform.mjs` | `terraform/` (14 files: VPC 3-tier, ALB, ECS Fargate + Spot, RDS PostgreSQL, ElastiCache Redis, ACM + Route53, CloudWatch alarms, IAM) |
+| `dockerfile` | `make-dockerfile.mjs` | `Dockerfile` (multi-stage), `.dockerignore`, `docker-compose.yml` (App + Postgres + Redis + Nginx), `.dev.yml`, `.test.yml` |
+| `github-actions` | `make-github-actions.mjs` | `.github/workflows/` (CI, Deploy, Release, CodeQL, Dependency Review, PR Labeler, Stale), `dependabot.yml`, `labeler.yml` |
+| `gitlab-ci` | `make-gitlab-ci.mjs` | `.gitlab-ci.yml` (6 stages: validate, test, security, build, staging, production) |
+| `k8s` | `make-k8s.mjs` | `k8s/` (20 manifests + Kustomize overlays staging/production) |
+| `helm` | `make-helm.mjs` | `helm/app/` (18 files: full chart, templates, values per env, tests) |
+| `jenkins` | `make-jenkinsfile.mjs` | `Jenkinsfile` (K8s agent, parallel, SonarQube, Trivy, Slack) |
+| `nginx` | `make-nginx.mjs` | `nginx/` (nginx.conf, site config, Dockerfile, SSL script) |
+| `terraform` | `make-terraform.mjs` | `terraform/` (14 files: VPC, ALB, ECS, RDS, Redis, ACM, CloudWatch) |
+| `pm2` | `make-pm2.mjs` | `ecosystem.config.cjs` (cluster, worker, scheduler), `logrotate.conf` |
+| `monitoring` | `make-monitoring.mjs` | Prometheus + Grafana + Alertmanager + Loki + metrics middleware |
 
-## Chi tiết từng Generator
+### Code Quality & DX
 
-### Docker (`dockerfile`)
+| Command | File | Output |
+|---|---|---|
+| `eslint` | `make-eslint-prettier.mjs` | `eslint.config.mjs` (flat config, TS, import, unicorn, sonarjs, security), `.prettierrc`, `.prettierignore`, `.editorconfig` |
+| `husky` | `make-husky.mjs` | `.husky/` (pre-commit, commit-msg, pre-push), `.lintstagedrc`, `commitlint.config.mjs`, `.czrc`, `.versionrc` |
+| `typescript` | `make-typescript.mjs` | `tsconfig.json` (base), `tsconfig.build.json`, `tsconfig.test.json`, `tsconfig.paths.json`, `src/types/global.d.ts` |
+| `testing` | `make-testing.mjs` | `vitest.config.ts`, test setup/helpers (factory, mock-request, db), `playwright.config.ts` |
+| `vscode` | `make-vscode.mjs` | `.vscode/` (settings, extensions, launch, tasks, code-snippets) |
+
+### Project Config
+
+| Command | File | Output |
+|---|---|---|
+| `git` | `make-git.mjs` | `.gitignore`, `.gitattributes`, GitHub templates (bug/feature/PR), `CODEOWNERS`, `CONTRIBUTING.md` |
+| `env` | `make-env.mjs` | `.env.example`, `.env.development`, `.env.test`, `src/config/env.ts` (Zod validation) |
+| `security` | `make-security.mjs` | `.npmrc`, `SECURITY.md`, `.snyk`, `.audit-ci.jsonc`, `src/config/security.ts` (Helmet, CORS, rate limits) |
+| `api-docs` | `make-api-docs.mjs` | `docs/openapi.yaml` (OpenAPI 3.1), `src/config/swagger.ts`, `.redocly.yaml` |
+| `makefile` | `make-makefile.mjs` | `Makefile` (40+ commands: dev, test, docker, deploy, db, docs, monitoring) |
+
+---
+
+## Chi tiet tung Generator
+
+### ESLint + Prettier (`eslint`)
 
 ```bash
-node index.mjs dockerfile
+node index.mjs eslint
 ```
 
-- **Dockerfile**: Multi-stage build (deps → builder → runner), non-root user, tini, HEALTHCHECK
-- **docker-compose.yml**: App + PostgreSQL 16 + Redis 7 + Nginx + Adminer + Redis Commander
-- **docker-compose.dev.yml**: Hot reload, Node.js debugger (port 9229)
-- **docker-compose.test.yml**: tmpfs cho DB/Redis, test database riêng
+- **eslint.config.mjs**: Flat config with TypeScript, import ordering, unicorn, sonarjs (cognitive complexity), security plugin, jsdoc, relaxed rules for tests
+- **.prettierrc**: Single quotes, trailing commas, 100 char width, overrides per file type
+- **.editorconfig**: UTF-8, LF, 2 spaces, per-language settings
 
 ```bash
-docker compose up -d                                            # Production
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up  # Development
-docker compose --profile debug up -d                            # + Adminer & Redis Commander
+npm i -D eslint typescript-eslint @eslint/js eslint-config-prettier \
+  eslint-plugin-import eslint-plugin-unicorn eslint-plugin-sonarjs \
+  eslint-plugin-security eslint-plugin-jsdoc prettier
 ```
 
-### GitHub Actions (`github-actions`)
+### Husky + Commitlint (`husky`)
 
 ```bash
-node index.mjs github-actions
+node index.mjs husky
 ```
 
-| Workflow | Mô tả |
+- **pre-commit**: lint-staged (ESLint fix + Prettier per file type)
+- **commit-msg**: commitlint (conventional commits: feat, fix, docs, etc.)
+- **pre-push**: typecheck + tests
+- **.czrc**: Commitizen for interactive commit UI
+- **.versionrc**: Changelog generation config
+
+```bash
+npm i -D husky lint-staged @commitlint/cli @commitlint/config-conventional commitizen
+```
+
+### TypeScript (`typescript`)
+
+```bash
+node index.mjs typescript
+```
+
+- **tsconfig.json**: ES2022, NodeNext, strict, path aliases (`@/*`)
+- **tsconfig.build.json**: Production (no sourcemaps, strip comments, no unused)
+- **tsconfig.test.json**: Relaxed for tests (vitest globals)
+- **src/types/global.d.ts**: ProcessEnv, utility types (Brand, DeepPartial), API response types
+
+### Testing (`testing`)
+
+```bash
+node index.mjs testing
+```
+
+- **vitest.config.ts**: V8 coverage (80% thresholds), JUnit reporter, path aliases, forks pool
+- **test/helpers/**: Factory (user, post, API responses), mock HTTP req/res, DB helpers
+- **playwright.config.ts**: Chromium + Firefox + mobile, CI mode, screenshots on failure
+
+```bash
+npm i -D vitest @vitest/coverage-v8 vite-tsconfig-paths @playwright/test
+```
+
+### VSCode (`vscode`)
+
+```bash
+node index.mjs vscode
+```
+
+- **settings.json**: Format on save, ESLint fix, Prettier, TypeScript inlay hints, file watchers
+- **extensions.json**: 20+ recommended extensions
+- **launch.json**: Debug app, current file, tests, Docker attach
+- **tasks.json**: Build, dev, test, lint, Docker, DB tasks
+- **code-snippets**: TS (async fn, interface, try-catch), testing (describe, it, suite), Express (handler, middleware)
+
+### Git (`git`)
+
+```bash
+node index.mjs git
+```
+
+- **.gitignore**: Node.js comprehensive (deps, build, env, IDE, OS, Terraform, secrets)
+- **.gitattributes**: LF normalization, diff drivers, binary detection, linguist
+- **GitHub templates**: Bug report form, feature request form, PR template with checklist
+- **CODEOWNERS**: Per-directory ownership
+- **CONTRIBUTING.md**: Setup, commit convention, PR process
+
+### Environment (`env`)
+
+```bash
+node index.mjs env
+```
+
+- **.env.example**: 50+ documented variables (app, DB, Redis, auth, email, S3, queue, CORS, features)
+- **.env.development**: Dev defaults (debug logging, relaxed auth)
+- **.env.test**: Test defaults (error-only logging, fast bcrypt)
+- **src/config/env.ts**: Zod schema validation + typed `config` object with derived values
+
+```bash
+npm i zod
+```
+
+### PM2 (`pm2`)
+
+```bash
+node index.mjs pm2
+```
+
+- **ecosystem.config.cjs**: 3 apps (main cluster + worker + scheduler), env per stage, deploy config
+- **logrotate.conf**: Daily rotation, 14 days retention, compressed
+
+### Security (`security`)
+
+```bash
+node index.mjs security
+```
+
+- **.npmrc**: Audit on install, exact versions, strict engine
+- **SECURITY.md**: Vulnerability reporting policy, timeline, scope
+- **src/config/security.ts**: Helmet CSP config, CORS with origin validation, rate limit tiers (global/auth/api/upload)
+
+### API Docs (`api-docs`)
+
+```bash
+node index.mjs api-docs
+```
+
+- **docs/openapi.yaml**: Full OpenAPI 3.1 spec (auth, users, health, pagination, error responses)
+- **src/config/swagger.ts**: swagger-jsdoc setup + YAML loader
+- **.redocly.yaml**: Linter + docs builder config
+
+### Monitoring (`monitoring`)
+
+```bash
+node index.mjs monitoring
+```
+
+- **docker-compose.monitoring.yml**: Prometheus + Grafana + Alertmanager + Node Exporter + cAdvisor + Loki
+- **Alert rules**: Error rate, latency, app down, CPU, memory, disk, container restarts
+- **Grafana dashboard**: Requests, latency percentiles, errors, memory, CPU, event loop
+- **src/middleware/metrics.ts**: prom-client middleware (request counter, duration histogram, active requests)
+
+```bash
+docker compose -f docker-compose.monitoring.yml up -d
+# Prometheus: http://localhost:9090
+# Grafana:    http://localhost:3001 (admin/admin)
+```
+
+### Makefile (`makefile`)
+
+```bash
+node index.mjs makefile
+```
+
+40+ commands organized by category:
+
+| Category | Commands |
 |---|---|
-| `ci.yml` | Lint, typecheck, test matrix (Node 18/20/22) với Postgres + Redis services, build, E2E (Playwright) |
-| `deploy.yml` | Docker Buildx multi-platform, GHA cache, deploy staging → production |
-| `release.yml` | Tag-based release, changelog, npm publish |
-| `codeql.yml` | Security scanning (weekly + on push) |
-| `dependency-review.yml` | PR dependency audit, license check |
-| `labeler.yml` | Auto-label PRs theo file paths |
-| `stale.yml` | Auto-close stale issues/PRs |
+| Development | `make dev`, `make build`, `make start`, `make start-pm2` |
+| Quality | `make lint`, `make test`, `make typecheck`, `make check-all`, `make ci` |
+| Database | `make db-migrate`, `make db-seed`, `make db-studio`, `make db-reset` |
+| Docker | `make docker-up`, `make docker-dev`, `make docker-build`, `make docker-push` |
+| Monitoring | `make monitoring-up`, `make monitoring-down` |
+| Deploy | `make deploy-staging`, `make deploy-production`, `make rollback` |
+| Infrastructure | `make tf-init`, `make tf-plan`, `make tf-apply` |
+| Docs | `make docs-lint`, `make docs-build`, `make docs-preview` |
+| Setup | `make setup` (full project bootstrap) |
 
-### GitLab CI (`gitlab-ci`)
+---
 
-```bash
-node index.mjs gitlab-ci
-```
-
-6 stages: `validate` → `test` → `security` → `build` → `deploy-staging` → `deploy-production`
-
-- **Security**: SAST, secret detection, container scanning (Trivy), license scanning
-- **Test**: Unit (Postgres + Redis), integration, E2E (Playwright)
-- **Deploy**: Auto staging (auto-stop 1 week), manual production, rollback support
-
-### Kubernetes (`k8s`)
+## Quick Start
 
 ```bash
-node index.mjs k8s
+# Tao tat ca config cho du an moi
+node index.mjs --all
+
+# Hoac chon nhung gi can
+node index.mjs eslint husky typescript testing git env dockerfile vscode makefile
 ```
 
-20 manifest files với Kustomize:
+## Tuy chinh
 
-- Core: Namespace, ServiceAccount, RBAC (Role + RoleBinding)
-- App: Deployment (securityContext, topologySpread, initContainers, probes, lifecycle), Service, Ingress
-- Scaling: HPA (with behavior), PDB
-- Security: NetworkPolicy (ingress/egress rules)
-- Storage: PVC
-- Jobs: CronJob cleanup + DB backup
-- Governance: ResourceQuota, LimitRange
-- Overlays: `staging/` (1 replica), `production/` (3 replicas, HPA max 20)
+Sau khi generate, thay doi cac placeholder:
 
-```bash
-kubectl apply -k k8s/                        # Base
-kubectl apply -k k8s/overlays/staging/       # Staging
-kubectl apply -k k8s/overlays/production/    # Production
-```
-
-### Helm (`helm`)
-
-```bash
-node index.mjs helm
-```
-
-Full Helm chart (18 files):
-
-- Templates: ServiceAccount, Deployment (checksum annotations), ConfigMap, Secret, Ingress, HPA, PDB, NetworkPolicy, CronJob, NOTES.txt
-- Tests: test-connection pod
-- Values: `values.yaml` (base), `values-staging.yaml`, `values-production.yaml`
-
-```bash
-helm install app ./helm/app                                     # Default
-helm install app ./helm/app -f helm/app/values-staging.yaml     # Staging
-helm install app ./helm/app -f helm/app/values-production.yaml  # Production
-helm test app                                                   # Run tests
-```
-
-### Jenkins (`jenkins`)
-
-```bash
-node index.mjs jenkins
-```
-
-- Kubernetes Pod agent (node + docker + kubectl containers)
-- Parallel stages: Lint / Type Check / Format, Unit / Integration tests
-- SonarQube analysis + Quality Gate
-- Docker build + Trivy security scan
-- Slack notifications (success / failure / unstable)
-- Manual production approval với submitter whitelist
-
-### Nginx (`nginx`)
-
-```bash
-node index.mjs nginx
-```
-
-- **nginx.conf**: Worker tuning, gzip, rate limiting zones (general/api/login/upload), proxy cache paths, upstream load balancing (least_conn), CloudFlare real IP, JSON structured logging
-- **default.conf**: SSL (TLS 1.2+, OCSP stapling, HSTS, CSP), per-endpoint rate limits, WebSocket (`/ws`), CORS, upload endpoint, internal metrics, deny dotfiles/sensitive files
-- **Dockerfile**: Production Nginx image
-- **generate-ssl.sh**: Self-signed SSL cho development
-
-### Terraform (`terraform`)
-
-```bash
-node index.mjs terraform
-```
-
-14 files — full AWS infrastructure:
-
-| File | Resources |
-|---|---|
-| `main.tf` | Provider, S3 backend, data sources |
-| `variables.tf` | All variables với defaults |
-| `vpc.tf` | VPC, 3-tier subnets, NAT Gateway per AZ, IGW, route tables, flow logs |
-| `security-groups.tf` | ALB, App, Database, Redis SGs |
-| `alb.tf` | ALB, HTTPS listener, HTTP→HTTPS redirect, target group, S3 access logs |
-| `iam.tf` | ECS execution role, task role (S3, SQS, Secrets Manager) |
-| `ecs.tf` | Cluster, Fargate + Spot, task definition, service, auto-scaling, ECR + lifecycle |
-| `rds.tf` | PostgreSQL 16, encrypted, multi-AZ, performance insights, Secrets Manager |
-| `redis.tf` | ElastiCache Redis 7.1, encrypted, auth token, failover |
-| `acm.tf` | SSL certificate, Route53 DNS validation, A records |
-| `monitoring.tf` | 6 CloudWatch alarms + SNS alerts |
-| `outputs.tf` | All resource IDs and endpoints |
-
-```bash
-cd terraform
-terraform init
-terraform plan -var-file=terraform.tfvars
-terraform apply -var-file=terraform.tfvars
-```
-
-## Tùy chỉnh
-
-Sau khi generate, chỉnh sửa các giá trị placeholder:
-
-- `your-org/your-app` → tên org/repo thực tế
-- `example.com` → domain thực tế
-- `app.example.com` → subdomain thực tế
-- `alerts@example.com` → email nhận alerts
-- Credentials, API keys, database passwords → giá trị thực tế (sử dụng secrets management)
+- `your-org/your-app` → ten org/repo thuc te
+- `example.com` → domain thuc te
+- `alerts@example.com` → email nhan alerts
+- Credentials, API keys → gia tri thuc te (dung secrets management)
 
 ## License
 
