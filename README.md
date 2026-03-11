@@ -1,6 +1,6 @@
 # DevOps & Project Config Generator
 
-Bộ 20 generators MJS tạo nhanh toàn bộ file cấu hình production-ready cho dự án Node.js/TypeScript — từ ESLint, Husky, Docker cho đến K8S, Terraform, Monitoring.
+Bộ 21 generators MJS tạo nhanh toàn bộ file cấu hình production-ready cho dự án Node.js/TypeScript — từ ESLint, Husky, Docker cho đến K8S, Terraform, Monitoring, Elasticsearch.
 
 ## Yeu cau
 
@@ -12,21 +12,27 @@ Bộ 20 generators MJS tạo nhanh toàn bộ file cấu hình production-ready 
 # Xem danh sach generators
 node index.mjs --list
 
-# Chay tat ca (20 generators)
+# Chay tat ca (21 generators)
 node index.mjs --all
 
 # Chay tung nhom
-node index.mjs eslint husky typescript testing vscode   # Code quality
-node index.mjs dockerfile nginx k8s helm terraform      # Infrastructure
-node index.mjs git env security api-docs makefile        # Project config
+node index.mjs eslint husky typescript testing vscode        # Code quality
+node index.mjs dockerfile nginx k8s helm terraform           # Infrastructure
+node index.mjs git env security api-docs makefile             # Project config
+node index.mjs elasticsearch monitoring                      # Observability
 
 # Ket hop tuy y
 node index.mjs dockerfile eslint husky git env
+
+# Generate toi thu muc khac (--path)
+node index.mjs elasticsearch --path ./my-project
+node index.mjs --all --path /home/user/new-app
+node make-api-docs.mjs ./my-project                          # Chay truc tiep
 ```
 
 > Cac file da ton tai se **khong bi ghi de** (hien canh bao).
 
-## Tong quan Generators (20)
+## Tong quan Generators (21)
 
 ### DevOps & Infrastructure
 
@@ -42,6 +48,7 @@ node index.mjs dockerfile eslint husky git env
 | `terraform` | `make-terraform.mjs` | `terraform/` (14 files: VPC, ALB, ECS, RDS, Redis, ACM, CloudWatch) |
 | `pm2` | `make-pm2.mjs` | `ecosystem.config.cjs` (cluster, worker, scheduler), `logrotate.conf` |
 | `monitoring` | `make-monitoring.mjs` | Prometheus + Grafana + Alertmanager + Loki + metrics middleware |
+| `elasticsearch` | `make-elasticsearch.mjs` | ES 8.17 + Kibana docker-compose, config, ILM policy, index templates (logs + products), client + service TS, setup script |
 
 ### Code Quality & DX
 
@@ -209,6 +216,32 @@ docker compose -f docker-compose.monitoring.yml up -d
 # Grafana:    http://localhost:3001 (admin/admin)
 ```
 
+### Elasticsearch (`elasticsearch`)
+
+```bash
+node index.mjs elasticsearch
+```
+
+- **docker-compose.elasticsearch.yaml**: ES 8.17 + Kibana (single-node, security enabled, health check)
+- **elasticsearch/elasticsearch.yml**: Cluster, network, security, memory lock config
+- **elasticsearch/ilm-policy.json**: ILM lifecycle: hot (7d/50GB rollover) → warm (shrink, forcemerge) → cold (30d, freeze) → delete (90d)
+- **elasticsearch/index-template-logs.json**: Structured logging (trace_id, span_id, request details, error stack)
+- **elasticsearch/index-template-products.json**: Product search (edge_ngram autocomplete, completion suggest, geo_point)
+- **src/config/elasticsearch.ts**: Singleton client, health check, bootstrap setup (ILM + templates + indices)
+- **src/services/elasticsearch.service.ts**: Generic search, full-text with highlights, autocomplete/suggest, bulk index, aggregations
+- **scripts/es-setup.ts**: One-command bootstrap script
+- **.env.elasticsearch**: Connection credentials
+
+```bash
+npm i @elastic/elasticsearch
+
+# Quick start
+docker compose -f docker-compose.elasticsearch.yaml up -d
+npx tsx scripts/es-setup.ts
+# Kibana: http://localhost:5601
+# ES API: http://localhost:9200
+```
+
 ### Makefile (`makefile`)
 
 ```bash
@@ -239,6 +272,10 @@ node index.mjs --all
 
 # Hoac chon nhung gi can
 node index.mjs eslint husky typescript testing git env dockerfile vscode makefile
+
+# Generate vao thu muc bat ky
+node index.mjs --all --path ./my-project
+node index.mjs elasticsearch api-docs --path /path/to/project
 ```
 
 ## Tuy chinh
@@ -249,6 +286,13 @@ Sau khi generate, thay doi cac placeholder:
 - `example.com` → domain thuc te
 - `alerts@example.com` → email nhan alerts
 - Credentials, API keys → gia tri thuc te (dung secrets management)
+
+## Author
+
+**Dung Anh Pham**
+
+- GitHub: [dunganhpham](https://github.com/dunganhpham)
+- Email: dungpa.works@gmail.com
 
 ## License
 

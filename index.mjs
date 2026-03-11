@@ -18,6 +18,7 @@ const generators = {
   terraform: "make-terraform.mjs",
   pm2: "make-pm2.mjs",
   monitoring: "make-monitoring.mjs",
+  elasticsearch: "make-elasticsearch.mjs",
 
   // ─── Code Quality & DX ───
   eslint: "make-eslint-prettier.mjs",
@@ -42,10 +43,12 @@ DevOps Config Generator
 =======================
 
 Usage:
-  node index.mjs [generator...]   Run specific generator(s)
-  node index.mjs --all            Run all generators
-  node index.mjs --list           List available generators
-  node index.mjs --help           Show this help
+  node index.mjs [generator...]              Run specific generator(s)
+  node index.mjs [generator...] --path DIR   Generate to target directory
+  node index.mjs --all                       Run all generators
+  node index.mjs --all --path DIR            Run all generators to target directory
+  node index.mjs --list                      List available generators
+  node index.mjs --help                      Show this help
 
 Available generators:
 ${Object.entries(generators)
@@ -55,7 +58,8 @@ ${Object.entries(generators)
 Examples:
   node index.mjs dockerfile k8s
   node index.mjs github-actions helm
-  node index.mjs --all
+  node index.mjs elasticsearch --path ./my-project
+  node index.mjs --all --path ./my-project
 `);
 }
 
@@ -72,9 +76,13 @@ if (args.includes("--list")) {
   process.exit(0);
 }
 
+// ─── Parse --path argument ───
+const pathIdx = args.indexOf("--path");
+const targetPath = pathIdx !== -1 ? args[pathIdx + 1] : null;
+
 const toRun = args.includes("--all")
   ? Object.keys(generators)
-  : args.filter((a) => !a.startsWith("-"));
+  : args.filter((a) => !a.startsWith("-") && a !== targetPath);
 
 let hasError = false;
 
@@ -86,10 +94,11 @@ for (const name of toRun) {
   }
 
   const script = resolve(__dirname, generators[name]);
-  console.log(`\n━━━ Running: ${name} ━━━`);
+  const pathArg = targetPath ? ` "${resolve(targetPath)}"` : "";
+  console.log(`\n━━━ Running: ${name}${targetPath ? ` → ${targetPath}` : ""} ━━━`);
 
   try {
-    execSync(`node "${script}"`, { stdio: "inherit" });
+    execSync(`node "${script}"${pathArg}`, { stdio: "inherit" });
   } catch {
     console.error(`❌ Failed: ${name}`);
     hasError = true;

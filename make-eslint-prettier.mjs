@@ -1,4 +1,6 @@
 import { writeFileSync, existsSync } from "fs";
+import { resolve } from "path";
+if (process.argv[2]) process.chdir(resolve(process.argv[2]));
 
 // ─── ESLint Flat Config (eslint.config.mjs) ───
 const eslintConfig = `

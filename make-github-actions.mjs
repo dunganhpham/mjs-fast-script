@@ -1,4 +1,6 @@
 import { writeFileSync, existsSync, mkdirSync } from "fs";
+import { resolve } from "path";
+if (process.argv[2]) process.chdir(resolve(process.argv[2]));
 
 // ─── CI Workflow ───
 const ciWorkflow = `
